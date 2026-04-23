@@ -56,13 +56,10 @@ class Map2d extends Component {
       zoom: 1,
       panX: 0,
       panY: 0,
-      targetPanX: 0,
-      targetPanY: 0,
       isDragging: false,
       lastMouseX: 0,
       lastMouseY: 0,
     };
-    this.mapRef = React.createRef();
 
     props.messageBus.listen([4], this.onMessage.bind(this));
     props.messageBus.listen([1], this.tickUpdate.bind(this));
@@ -80,30 +77,7 @@ class Map2d extends Component {
 
     document.addEventListener("keydown", this.handleKeyDown.bind(this));
   }
-  
-  componentDidMount() {
-    this.animate();
-  }
-  
-  componentWillUnmount() {
-    cancelAnimationFrame(this.raf);
-  }
-  
-  animate() {
-    const smooth = 0.15;
-  
-    this.setState({
-      panX = this.state.panX + (this.state.targetPanX - this.state.panX) * smooth,
-      panY = this.state.panY + (this.state.targetPanY - this.state.panY) * smooth
-    });
-  
-    if (this.mapRef.current) {
-      this.mapRef.current.style.transform =
-        `scale(${this.state.zoom}) translate(${this.state.panX}px, ${this.state.panY}px)`;
-    }
-    this.raf = requestAnimationFrame(this.animate);
-  };
-  
+
   tickUpdate(message) {
     if (message.tickstate.playersList) {
       this.setState({
@@ -194,8 +168,8 @@ class Map2d extends Component {
       const deltaX = e.clientX - this.state.lastMouseX;
       const deltaY = e.clientY - this.state.lastMouseY;
       this.setState({
-        targetPanX: this.state.targetPanX + deltaX,
-        targetPanY: this.state.targetPanY + deltaY,
+        panX: this.state.panX + deltaX,
+        panY: this.state.panY + deltaY,
         lastMouseX: e.clientX,
         lastMouseY: e.clientY,
       });
@@ -215,7 +189,7 @@ class Map2d extends Component {
   };
 
   resetZoom() {
-    this.setState({ zoom: 1, targetPanX: 0, targetPanY: 0, panX: 0, panY: 0 });
+    this.setState({ zoom: 1, panX: 0, panY: 0 });
   }
 
   render() {
@@ -276,7 +250,6 @@ class Map2d extends Component {
       <div className="map-wrapper">
         <div
           className="map-container"
-          ref={this.mapRef}
           id="map"
           style={style}
           onMouseDown={this.handleMouseDown}
